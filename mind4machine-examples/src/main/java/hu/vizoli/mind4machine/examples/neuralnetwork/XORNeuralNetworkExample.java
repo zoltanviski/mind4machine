@@ -76,7 +76,7 @@ public class XORNeuralNetworkExample {
 				.setHasHasBiasNeuron(false);
 
 		// Hidden layers configuration
-		final List<LayerConfiguration> hiddenLayersConfiguration = new ArrayList<LayerConfiguration>();
+		final List<LayerConfiguration> hiddenLayersConfiguration = new ArrayList<>();
 		hiddenLayersConfiguration.add(hiddenLayerConfiguration);
 
 		// Trainer configuration
