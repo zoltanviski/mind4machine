@@ -6,6 +6,8 @@ import hu.vizoli.mind4machine.neuralnetwork.dataset.DataSet;
 import hu.vizoli.mind4machine.neuralnetwork.lossfunction.LossFunction;
 import hu.vizoli.mind4machine.neuralnetwork.network.NeuralNetwork;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.configuration.TrainerConfiguration;
+import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerEvent;
+import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerObserver;
 
 /**
  * Interface for the Trainer implementations.
@@ -62,5 +64,13 @@ public interface Trainer extends Serializable {
 	 * @return the eta
 	 */
 	public double getEta();
+
+	/**
+	 * Add the given observer to the subscriber list.
+	 * 
+	 * @param trainerEventType the event type which the observer is interested in
+	 * @param trainerObserver the observer
+	 */
+	public void subscribe(final TrainerEvent.Type trainerEventType, final TrainerObserver trainerObserver);
 
 }

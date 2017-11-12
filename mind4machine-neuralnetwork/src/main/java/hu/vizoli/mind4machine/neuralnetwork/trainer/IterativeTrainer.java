@@ -1,6 +1,9 @@
 package hu.vizoli.mind4machine.neuralnetwork.trainer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hu.vizoli.mind4machine.neuralnetwork.dataset.DataSet;
 import hu.vizoli.mind4machine.neuralnetwork.lossfunction.LossFunction;
@@ -8,6 +11,8 @@ import hu.vizoli.mind4machine.neuralnetwork.lossfunction.MeanSquaredError;
 import hu.vizoli.mind4machine.neuralnetwork.network.NeuralNetwork;
 import hu.vizoli.mind4machine.neuralnetwork.stopcriteria.StopCriteria;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.configuration.TrainerConfiguration;
+import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerEvent;
+import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerObserver;
 import hu.vizoli.mind4machine.neuralnetwork.trainingstrategy.TrainingStrategy;
 
 /**
@@ -63,12 +68,19 @@ public class IterativeTrainer implements Trainer {
 	private boolean isTraining = false;
 
 	/**
+	 * Observers who are interested in the events of the class.
+	 */
+	private final Map<TrainerEvent.Type, List<TrainerObserver>> subscribers;
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param trainerConfiguration the Trainer's configuration
 	 */
 	public IterativeTrainer(final TrainerConfiguration trainerConfiguration) {
 		this.trainerConfiguration = trainerConfiguration;
+
+		subscribers = new HashMap<>();
 
 		eta = trainerConfiguration.getEta();
 
@@ -89,17 +101,39 @@ public class IterativeTrainer implements Trainer {
 
 			trainingStrategy.startEpoch(trainingDataSet);
 
-			if (currentEpochCount % 500 == 0) {
-				System.out.println("# " + currentEpochCount + " epoch: " + lossFunction.getTotalLoss());
-			}
-
 			currentEpochCount++;
 
 			trainingStrategy.finishEpoch();
+			notifyObservers(TrainerEvent.Type.EPOCH_FINISHED);
 
 			if (hasFailStopCriteria()) {
 				isTraining = false;
+
+				notifyObservers(TrainerEvent.Type.TRAINING_FINISHED);
 			}
+		}
+	}
+
+	@Override
+	public void subscribe(final TrainerEvent.Type trainerEvent, final TrainerObserver trainerObserver) {
+		if (subscribers.get(trainerEvent) == null) {
+			subscribers.put(trainerEvent, new ArrayList<>());
+		}
+
+		subscribers.get(trainerEvent).add(trainerObserver);
+	}
+
+	/**
+	 * Notify all the subscribers who are interested in the given event.
+	 * 
+	 * @param trainerEventType the event type
+	 */
+	private void notifyObservers(final TrainerEvent.Type trainerEventType) {
+		if (subscribers.get(trainerEventType) == null)
+			return;
+
+		for (final TrainerObserver trainerObserver : subscribers.get(trainerEventType)) {
+			trainerObserver.handleTrainerEvent(trainerEventType);
 		}
 	}
 
