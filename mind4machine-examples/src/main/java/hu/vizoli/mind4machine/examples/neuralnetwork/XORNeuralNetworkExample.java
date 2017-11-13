@@ -23,8 +23,17 @@ import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerEvent;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerObserver;
 import hu.vizoli.mind4machine.neuralnetwork.trainingstrategy.BackPropagation;
 
+/**
+ * This example shows how to train a Neural Network for the XOR (Exclusive or) 
+ * logical operation.
+ * 
+ * @author Zoltan Viski (vizoli)
+ */
 public class XORNeuralNetworkExample implements TrainerObserver {
 
+	/**
+	 * The Neural Network which we will train and use for the classification.
+	 */
 	private NeuralNetwork neuralNetwork;
 
 	/**

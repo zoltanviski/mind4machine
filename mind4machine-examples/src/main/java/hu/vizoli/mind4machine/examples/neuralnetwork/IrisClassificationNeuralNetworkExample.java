@@ -22,10 +22,25 @@ import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerEvent;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerObserver;
 import hu.vizoli.mind4machine.neuralnetwork.trainingstrategy.BackPropagation;
 
+/**
+ * This example shows hot to train a Neural Network for the Iris classification.
+ * 
+ * Details and description of the Iris data set:
+ * https://en.wikipedia.org/wiki/Iris_flower_data_set
+ * 
+ * @author Zoltan Viski (vizoli)
+ */
 public class IrisClassificationNeuralNetworkExample implements TrainerObserver {
 
+	/**
+	 * The Neural Network which we will train and use for the classification.
+	 */
 	private NeuralNetwork neuralNetwork;
-	DataSet dataSet;
+
+	/**
+	 * The training Data set (the iris data set (3*50) ).
+	 */
+	private DataSet trainingDataSet;
 
 	/**
 	 * Main.
@@ -43,11 +58,11 @@ public class IrisClassificationNeuralNetworkExample implements TrainerObserver {
 	private void main() {
 		neuralNetwork = getNeuralNetwork();
 
-		dataSet = DataSet.createFromCSV(
+		trainingDataSet = DataSet.createFromCSV(
 				"src/main/java/hu/vizoli/mind4machine/examples/neuralnetwork/data/iris.full.dataset.normalized.csv",
 				4, 3);
 
-		neuralNetwork.train(dataSet);
+		neuralNetwork.train(trainingDataSet);
 	}
 
 	/**
@@ -142,9 +157,9 @@ public class IrisClassificationNeuralNetworkExample implements TrainerObserver {
 	 * Handle the TRAINING_FINISHED event.
 	 */
 	private void trainingFinishedHandler() {
-		for (int i = 0; i < dataSet.getSize(); i++) {
+		for (int i = 0; i < trainingDataSet.getSize(); i++) {
 			System.out.println("----------------------------------------------");
-			final double[] prediction = neuralNetwork.getPrediction(dataSet.getDataSetElement(i).getInput());
+			final double[] prediction = neuralNetwork.getPrediction(trainingDataSet.getDataSetElement(i).getInput());
 			final int n = prediction.length;
 			System.out.print("Ideal    : ");
 			for (int j = 0; j < n; j++) {
@@ -154,7 +169,7 @@ public class IrisClassificationNeuralNetworkExample implements TrainerObserver {
 			System.out.println("");
 			System.out.print("Predicted: ");
 			for (int j = 0; j < n; j++) {
-				System.out.print(dataSet.getDataSetElement(i).getIdealOutput()[j] + " ");
+				System.out.print(trainingDataSet.getDataSetElement(i).getIdealOutput()[j] + " ");
 			}
 			System.out.println("");
 		}
