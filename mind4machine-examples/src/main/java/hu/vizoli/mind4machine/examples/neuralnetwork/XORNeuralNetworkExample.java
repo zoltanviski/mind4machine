@@ -39,8 +39,6 @@ public class XORNeuralNetworkExample implements TrainerObserver {
 
 	/**
 	 * Main.
-	 * 
-	 * @param args
 	 */
 	private void main() {
 		neuralNetwork = getNeuralNetwork();
@@ -145,7 +143,7 @@ public class XORNeuralNetworkExample implements TrainerObserver {
 	}
 
 	/**
-	 * Handle the EPOCH_FINISHED event.
+	 * Handle the TRAINING_FINISHED event.
 	 */
 	private void trainingFinishedHandler() {
 		System.out.println("----------------------------------------------");

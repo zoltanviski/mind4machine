@@ -18,9 +18,14 @@ import hu.vizoli.mind4machine.neuralnetwork.stopcriteria.MinLossStop;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.IterativeTrainer;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.Trainer;
 import hu.vizoli.mind4machine.neuralnetwork.trainer.configuration.TrainerConfiguration;
+import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerEvent;
+import hu.vizoli.mind4machine.neuralnetwork.trainer.event.TrainerObserver;
 import hu.vizoli.mind4machine.neuralnetwork.trainingstrategy.BackPropagation;
 
-public class IrisClassificationNeuralNetworkExample {
+public class IrisClassificationNeuralNetworkExample implements TrainerObserver {
+
+	private NeuralNetwork neuralNetwork;
+	DataSet dataSet;
 
 	/**
 	 * Main.
@@ -28,34 +33,21 @@ public class IrisClassificationNeuralNetworkExample {
 	 * @param args
 	 */
 	public static void main(final String[] args) {
-		final NeuralNetwork neuralNetwork = getNeuralNetwork();
+		final IrisClassificationNeuralNetworkExample irisClassificationNeuralNetworkExample = new IrisClassificationNeuralNetworkExample();
+		irisClassificationNeuralNetworkExample.main();
+	}
 
-		final DataSet dataSet = DataSet.createFromCSV(
+	/**
+	 * Main.
+	 */
+	private void main() {
+		neuralNetwork = getNeuralNetwork();
+
+		dataSet = DataSet.createFromCSV(
 				"src/main/java/hu/vizoli/mind4machine/examples/neuralnetwork/data/iris.full.dataset.normalized.csv",
 				4, 3);
 
 		neuralNetwork.train(dataSet);
-
-		for (int i = 0; i < dataSet.getSize(); i++) {
-			System.out.println("----------------------");
-			final double[] prediction = neuralNetwork.getPrediction(dataSet.getDataSetElement(i).getInput());
-			final int n = prediction.length;
-			System.out.print("Ideal    : ");
-			for (int j = 0; j < n; j++) {
-
-				System.out.print(prediction[j] + " ");
-			}
-			System.out.println("");
-			System.out.print("Predicted: ");
-			for (int j = 0; j < n; j++) {
-				System.out.print(dataSet.getDataSetElement(i).getIdealOutput()[j] + " ");
-			}
-			System.out.println("");
-		}
-
-		System.out.println("--------------------------------------------------------");
-		System.out.println("Neural network accuracy: "
-				+ (100 - neuralNetwork.getTrainer().getLossFunction().getTotalLoss()) + "%");
 	}
 
 	/**
@@ -63,7 +55,7 @@ public class IrisClassificationNeuralNetworkExample {
 	 * 
 	 * @return the Neural Network
 	 */
-	private static NeuralNetwork getNeuralNetwork() {
+	private NeuralNetwork getNeuralNetwork() {
 		// Neuron configurations
 		final NeuronConfiguration inputNeuronConfiguration = new NeuronConfiguration()
 				.setNeuronType(NeuronType.INPUT);
@@ -103,6 +95,8 @@ public class IrisClassificationNeuralNetworkExample {
 				.addStopCriteria(new MinLossStop(0.001));
 
 		final Trainer trainer = new IterativeTrainer(trainerConfiguration);
+		trainer.subscribe(TrainerEvent.Type.EPOCH_FINISHED, this);
+		trainer.subscribe(TrainerEvent.Type.TRAINING_FINISHED, this);
 
 		// Neural Nework configuration
 		final NeuralNetworkConfiguration neuralNetworkConfiguration = new NeuralNetworkConfiguration()
@@ -113,6 +107,57 @@ public class IrisClassificationNeuralNetworkExample {
 		final NeuralNetwork result = new NeuralNetworkImpl(neuralNetworkConfiguration);
 
 		return result;
+	}
+
+	@Override
+	public void handleTrainerEvent(final TrainerEvent.Type trainerEventType) {
+		switch (trainerEventType) {
+		case EPOCH_FINISHED:
+			epochFinishedHandler();
+
+			break;
+
+		case TRAINING_FINISHED:
+			trainingFinishedHandler();
+
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * Handle the EPOCH_FINISHED event.
+	 */
+	private void epochFinishedHandler() {
+		final int currentEpoch = neuralNetwork.getTrainer().getCurrentEpochCount();
+		if (currentEpoch % 100 == 0) {
+			System.out.println(
+					"Epoch #" + currentEpoch + " Loss: " + neuralNetwork.getTrainer().getLossFunction().getTotalLoss());
+		}
+	}
+
+	/**
+	 * Handle the TRAINING_FINISHED event.
+	 */
+	private void trainingFinishedHandler() {
+		for (int i = 0; i < dataSet.getSize(); i++) {
+			System.out.println("----------------------------------------------");
+			final double[] prediction = neuralNetwork.getPrediction(dataSet.getDataSetElement(i).getInput());
+			final int n = prediction.length;
+			System.out.print("Ideal    : ");
+			for (int j = 0; j < n; j++) {
+
+				System.out.print(prediction[j] + " ");
+			}
+			System.out.println("");
+			System.out.print("Predicted: ");
+			for (int j = 0; j < n; j++) {
+				System.out.print(dataSet.getDataSetElement(i).getIdealOutput()[j] + " ");
+			}
+			System.out.println("");
+		}
 	}
 
 }
